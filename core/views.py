@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.models import User, auth
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .models import Profile, Post, LikePost
+from .models import Profile, Post, LikePost, FollowersCount
 
 
 # Create your views here.
@@ -69,6 +69,27 @@ def profile(request, pk):
     }
 
     return render(request, 'profile.html', context)
+
+
+@login_required(login_url='signin')
+def follow(request):
+    if request.method == 'POST':
+        follower = request.POST['follower']
+        followed = request.POST['followed']
+
+        follow_filter = FollowersCount.objects.filter(follower=follower, followed=followed).first()
+
+        if follow_filter is not None:
+            delete_follower = FollowersCount.objects.get(follower=follower, followed=followed)
+            delete_follower.delete()
+            return redirect('/profile/' + followed)
+        else:
+            new_follower = FollowersCount.objects.create(follower=follower, followed=followed)
+            new_follower.save()
+            return redirect('/profile/' + followed)
+
+    else:
+        return redirect('/')
 
 
 @login_required(login_url='signin')
