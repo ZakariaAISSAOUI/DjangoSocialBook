@@ -1,17 +1,13 @@
 {% load static %}
 
-<!DOCTYPE html>
 <html lang="en">
 
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href={% static
-    "favicon.png" %} rel="icon" type="image/png">
+    <link href="{% static 'favicon.png' %}" rel="icon" type="image/png">
     <title>Home</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="{% static 'assets/css/icons.css' %}">
     <link rel="stylesheet" href="{% static 'assets/css/uikit.css' %}">
     <link rel="stylesheet" href="{% static 'assets/css/style.css' %}">
@@ -215,7 +211,7 @@
                 <!-- post header-->
                 <div class="flex justify-between items-center px-4 py-3">
                     <div class="flex flex-1 items-center space-x-4">
-                        <span class="block capitalize font-semibold "> <a href="#">@{{post.user}} </a> </span>
+                        <span class="block capitalize font-semibold "> <a href="/profile/{{post.user}}">@{{post.user}} </a> </span>
                     </div>
                     <div>
                         <a href="#"> <i
