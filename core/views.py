@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .models import Profile, Post, LikePost, FollowersCount
 from itertools import chain
+import random
 
 
 # Create your views here.
@@ -26,7 +27,34 @@ def index(request):
 
     feed_list = list(chain(*feed))
 
-    return render(request, 'index.html', {'user_profile': user_profile, 'posts': feed_list})
+    # User Suggestions...
+    all_users = User.objects.all()
+    all_user_following = []
+
+    for user in user_following:
+        user_list = User.objects.get(username=user.followed)
+        all_user_following.append(user_list)
+
+    new_suggestions_list = [x for x in list(all_users) if (x not in list(all_user_following))]
+    current_user = User.objects.filter(username=request.user.username)
+    final_suggestions_list = [x for x in list(new_suggestions_list) if (x not in list(current_user))]
+    random.shuffle(final_suggestions_list)
+
+    username_profile = []
+    username_profile_list = []
+
+    for users in final_suggestions_list:
+        username_profile.append(users.id)
+
+    for ids in username_profile:
+        profile_lists = Profile.objects.filter(id_user=ids)
+        username_profile_list.append(profile_lists)
+
+    suggestions_profiles = list(chain(*username_profile_list))
+
+    return render(request, 'index.html',
+                  {'user_profile': user_profile, 'posts': feed_list,
+                   'suggestions_profiles': suggestions_profiles[:5]})
 
 
 @login_required(login_url='signin')
@@ -48,26 +76,19 @@ def upload(request):
 
 @login_required(login_url='signin')
 def search(request):
-    user_object = User.objects.get(username=request.user.username)
-    user_profile = Profile.objects.get(user=user_object)
+    user_profile = Profile.objects.get(user=request.user)
+    username_profile_list = []
 
     if request.method == 'POST':
-        username = request.POST['username']
-        username_object = User.objects.filter(username__icontains=username)
+        username = request.POST.get('username')
+        if username:
+            username_objects = User.objects.filter(username__icontains=username)
+            user_ids = username_objects.values_list('pk', flat=True)
+            username_profile_list = Profile.objects.filter(user__in=user_ids)
 
-        username_profile = []
-        username_profile_list = []
-
-        for users in username_object:
-            username_profile.append(users.id)
-
-        for ids in username_profile:
-            profile_lists = Profile.objects.filter(id_user=ids)
-            username_profile_list.append(profile_lists)
-
-        username_profile_list = list(chain(*username_profile_list))
-
-    return render(request, 'search.html', {'user_profile': user_profile, 'username_profile_list': username_profile_list})
+    return render(request, 'search.html', {
+        'user_profile': user_profile,
+        'username_profile_list': username_profile_list })
 
 
 @login_required(login_url='signin')
